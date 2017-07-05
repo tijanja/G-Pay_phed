@@ -19,9 +19,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -29,14 +26,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.volley.Request;
-import com.android.volley.VolleyError;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Created by rajioladayo on 5/12/17.
@@ -44,6 +39,7 @@ import java.util.Objects;
 
 public class LoginActivity extends AppCompatActivity{
 
+    private final int REQUEST_READ_PHONE_STATE = 300;
     EditText username,password,sEmail,sPassword,sRePassword;
     TextView forgot_password,action_text,loginText,registerText;
     LinearLayout signup,signup_layout,login_layout;
@@ -51,8 +47,6 @@ public class LoginActivity extends AppCompatActivity{
     View reveal;
     int measuredWidth;
     boolean isLogin = true;
-    private final int REQUEST_READ_PHONE_STATE=300;
-
     private ProgressBar login_progress,registerProgress;
     private String IMEI,token;
 
@@ -172,7 +166,7 @@ public class LoginActivity extends AppCompatActivity{
         login_progress = (ProgressBar) findViewById(R.id.loginProgress);
         loginText = (TextView) findViewById(R.id.loginText);
 
-        reveal = (View) findViewById(R.id.reveal);
+        reveal = findViewById(R.id.reveal);
 
 
         forgot_password.setOnClickListener(new View.OnClickListener() {
@@ -343,7 +337,7 @@ public class LoginActivity extends AppCompatActivity{
         int cx = reveal.getWidth();
         int cy = reveal.getHeight();
 
-        int startX = (int) (cx / 2 );
+        int startX = cx / 2;
         int startY = (int) (cy / 2 + login.getY());
 
         float finalRadius = (float) Math.hypot(cx, cy);
@@ -400,7 +394,7 @@ public class LoginActivity extends AppCompatActivity{
                        Map<String,Object> params = new HashMap<>();
                        params.put("dir","auth");
                        params.put("userNameheaderValue","client");
-                       params.put("passwordheaderValue","client");
+                       params.put("passwordheaderValue", "Ieh6fooMaize");
                        params.put("method",Request.Method.POST);
 
                        new Auth(LoginActivity.this, params, new OnDataReady() {

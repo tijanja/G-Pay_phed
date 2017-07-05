@@ -2,13 +2,9 @@ package gpay.com.g_pay;
 
 import android.content.Context;
 import android.util.Base64;
-import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -25,7 +21,7 @@ import java.util.Map;
 
 public class Auth
 {
-    private final String URL = "http://104.131.174.54:9090/";
+    private final String URL = "http://192.163.215.63:8091/";
     private Context context;
     private OnDataReady onDataReady;
     private JSONObject param;
