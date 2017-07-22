@@ -22,6 +22,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.android.volley.Request;
+import com.google.firebase.crash.FirebaseCrash;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -118,7 +119,7 @@ public class CardPaymentActivity extends AppCompatActivity implements OnDataRead
             case 0:
                 if(mType!=null && !meterAccount.getText().toString().isEmpty() && !phone.getText().toString().isEmpty())
                 {
-                    btnCheck=1;
+
                     measuredWidth = verify_for_save_btn.getMeasuredWidth();
                     ValueAnimator anim = ValueAnimator.ofInt(measuredWidth,verify_for_save_btn.getMeasuredHeight());
                     anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener()
@@ -208,6 +209,7 @@ public class CardPaymentActivity extends AppCompatActivity implements OnDataRead
     @Override
     public void dataReady(JSONObject jsonObject, Object object)
     {
+        Log.e("eeeee",jsonObject.toString());
         LinearLayout accountDetailsView = (LinearLayout) findViewById(R.id.accountDetailsView);
         LinearLayout accountDetailsFormView = (LinearLayout) findViewById(R.id.accountDetailsFormView);
 
@@ -221,7 +223,7 @@ public class CardPaymentActivity extends AppCompatActivity implements OnDataRead
         {
             JSONObject accountJson = jsonObject.getJSONObject("yourResponse");
             address.setText(accountJson.getString("address"));
-            sCustomerid = accountJson.getInt("customerID");
+            sCustomerid = accountJson.getInt("id");
             sAddress = accountJson.getString("address");
             sName = accountJson.getString("name");
             sPhone = phone.getText().toString();
@@ -238,20 +240,30 @@ public class CardPaymentActivity extends AppCompatActivity implements OnDataRead
             accountDetailsView.invalidate();
 
             scaleBackBtn();
+            btnCheck=1;
 
         }
         catch (JSONException e)
         {
             scaleBackBtn();
-            e.printStackTrace();
+           Log.e("json",e.getMessage());
         }
     }
 
     @Override
     public void onConnectionError(JSONObject error)
     {
+
         scaleBackBtn();
-        Snackbar.make(progressBar,"Error can't verify account/meter, please try again later",Snackbar.LENGTH_LONG).show();
+        try
+        {
+            Snackbar.make(progressBar,error.getString("description"),Snackbar.LENGTH_LONG).show();
+        }
+        catch (JSONException e) {
+            FirebaseCrash.log(e.getMessage());
+
+        }
+        Log.e("",error.toString());
     }
 
     @Override

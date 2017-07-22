@@ -32,6 +32,7 @@ import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
+import com.google.firebase.crash.FirebaseCrash;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -400,13 +401,12 @@ public class MainActivity extends AppCompatActivity implements OnDataReady
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
-        mainCoordinator.animate().setDuration(250).scaleX(1f).scaleY(1f).start();
-        if(resultCode == Activity.RESULT_OK && requestCode==1)
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        try
         {
-            if(data!=null)
-            {
+        mainCoordinator.animate().setDuration(250).scaleX(1f).scaleY(1f).start();
+        if (resultCode == Activity.RESULT_OK && requestCode == 1) {
+            if (data != null) {
                 AccountMeter account = new AccountMeter();
                 account.setAccount(data.getStringExtra("account"));
                 account.setName(data.getStringExtra("name"));
@@ -419,17 +419,14 @@ public class MainActivity extends AppCompatActivity implements OnDataReady
                 accountPagerAdapter.notifyDataSetChanged();
 
                 swipeRefreshLayout.setRefreshing(true);
-                getTransactions(data.getIntExtra("customerid",0),1);
+                getTransactions(data.getIntExtra("customerid", 0), 1);
             }
 
         }
 
-        if(resultCode == Activity.RESULT_OK &&  requestCode==2)
-        {
-            if(data!=null)
-            {
-                if(!tranList.isEmpty())
-                {
+        if (resultCode == Activity.RESULT_OK && requestCode == 2) {
+            if (data != null) {
+                if (!tranList.isEmpty()) {
                     tranList.clear();
                     transactionListAdapter.notifyDataSetChanged();
                 }
@@ -440,25 +437,29 @@ public class MainActivity extends AppCompatActivity implements OnDataReady
                 account.setPhone(data.getStringExtra("phone"));
                 account.setAddress(data.getStringExtra("address"));
                 account.setType(data.getStringExtra("mType"));
-                account.setCustomerid(data.getIntExtra("customerid",0));
+                account.setCustomerid(data.getIntExtra("customerid", 0));
 
                 sectionHashMap.add(account);
                 accountPagerAdapter.notifyDataSetChanged();
 
-                mViewPager.setCurrentItem(sectionHashMap.size()-1,true);
-                getTransactions(account.getCustomerid(),1);
+                mViewPager.setCurrentItem(sectionHashMap.size() - 1, true);
+                getTransactions(account.getCustomerid(), 1);
             }
 
         }
 
-        if(resultCode==Activity.RESULT_CANCELED)
-        {
-            if(data!=null)
-            {
-                Snackbar.make(swipeRefreshLayout,data.getStringExtra("message"),Snackbar.LENGTH_LONG).show();
+        if (resultCode == Activity.RESULT_CANCELED) {
+            if (data != null) {
+                Snackbar.make(swipeRefreshLayout, data.getStringExtra("message"), Snackbar.LENGTH_LONG).show();
             }
 
         }
+
+    }
+    catch(Exception e)
+    {
+        FirebaseCrash.logcat(Log.ERROR, "OnActivityResult-exception", e.getMessage());
+    }
 
     }
 

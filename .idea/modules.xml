@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/G-Pay.iml" filepath="$PROJECT_DIR$/G-Pay.iml" />
+      <module fileurl="file://$PROJECT_DIR$/G-Pay_phed.iml" filepath="$PROJECT_DIR$/G-Pay_phed.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

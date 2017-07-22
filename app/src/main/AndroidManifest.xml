@@ -10,10 +10,13 @@
     <application
         android:name=".MeVolley"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/peb_logo"
         android:label="PHED Customer App"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/peb_logo"
         android:supportsRtl="true">
+        <meta-data
+            android:name="co.paystack.android.PublicKey"
+            android:value="pk_live_e7ef530a1ebec11e5c557513c95ebb1f97be17e5"/>
         <activity
             android:name=".LoginActivity"
             android:label="PHED Customer App"

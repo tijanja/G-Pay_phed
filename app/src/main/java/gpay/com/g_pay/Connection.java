@@ -8,6 +8,7 @@ import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.firebase.crash.FirebaseCrash;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -71,10 +72,13 @@ public class Connection
                 catch (JSONException e)
                 {
                     onDataReady.onNoConnection(s.trim());
+                    FirebaseCrash.report(e);
                 }
                 catch (NullPointerException e)
                 {
                     onDataReady.onNoConnection("No connection try again later");
+                    FirebaseCrash.report(e);
+
                 }
             }
         }){

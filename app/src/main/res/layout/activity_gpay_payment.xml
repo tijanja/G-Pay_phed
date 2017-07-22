@@ -58,49 +58,283 @@
                             android:layout_height="match_parent"
                             android:orientation="vertical"
                             android:visibility="invisible"
+                            android:id="@+id/pinViewSub">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1.3"
+                                android:orientation="vertical"
+                                android:padding="5dp"
+                                >
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Enter Card PIN"
+                                    android:textSize="24sp"
+                                    android:fontFamily="sans-serif-light"
+                                    android:textStyle="normal"
+
+                                    android:textColor="@color/colorPrimaryDark"
+                                    android:layout_marginTop="40dp"
+                                    android:layout_gravity="center_horizontal"/>
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent">
+                                    <android.support.design.widget.TextInputLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginRight="16dp"
+                                        android:layout_marginLeft="16dp"
+                                        android:layout_marginBottom="5dp"
+                                        android:padding="5dp"
+                                        android:hint="Enter PIN"
+                                        android:layout_gravity="center_vertical"
+                                        android:background="@drawable/rounded_edittext">
+                                        <EditText
+                                            android:drawableLeft="@drawable/ic_fiber_pin_black_24dp"
+                                            android:drawablePadding="5dp"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:inputType="numberSigned"
+                                            android:maxLines="1"
+                                            android:maxLength="4"
+                                            android:layout_gravity="center_vertical"
+                                            android:id="@+id/cardPIN"
+                                            />
+
+
+                                    </android.support.design.widget.TextInputLayout>
+                                </LinearLayout>
+
+
+                            </LinearLayout>
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_gravity="bottom"
+                                android:layout_marginTop="20dp"
+
+                                >
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_horizontal|center_vertical"
+                                    android:layout_marginBottom="10dp">
+                                    <View
+                                        android:layout_width="80dp"
+                                        android:layout_height="1dp"
+                                        android:background="#999999"/>
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Payment Option"
+                                        android:textColor="#999999"
+                                        android:layout_marginLeft="5dp"
+                                        android:layout_marginRight="5dp"/>
+
+                                    <View
+                                        android:layout_width="80dp"
+                                        android:layout_height="1dp"
+                                        android:background="#999999"/>
+                                </LinearLayout>
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center">
+                                    <ImageView
+                                        android:layout_width="100dp"
+                                        android:layout_height="wrap_content"
+                                        android:src="@drawable/master"/>
+
+                                    <ImageView
+                                        android:layout_width="40dp"
+                                        android:layout_height="wrap_content"
+                                        android:src="@drawable/visa"/>
+                                </LinearLayout>
+
+                            </LinearLayout>
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_weight="3"
+                                android:gravity="center">
+
+                                <FrameLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="46dp"
+                                    android:background="@drawable/yellow_bg_btn"
+                                    android:layout_gravity="bottom"
+                                    android:elevation="2dp"
+
+                                    android:onClick="confirmPINCode"
+                                    android:clickable="true"
+                                    android:layout_marginRight="40dp"
+                                    android:layout_marginLeft="40dp"
+                                    android:layout_marginBottom="20dp"
+
+                                    android:foreground="?attr/selectableItemBackgroundBorderless">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Confirm PIN"
+                                        android:textColor="#ffffff"
+                                        android:textSize="18dp"
+                                        android:layout_gravity="center"
+                                        android:fontFamily="sans-serif-light"
+                                        android:textStyle="normal"
+                                        />
+
+                                    <ProgressBar
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_gravity="center"
+
+                                        android:visibility="gone"
+                                        android:layout_margin="5dp"
+                                        android:elevation="4dp"/>
+
+                                    <ImageView
+                                        android:layout_width="40dp"
+                                        android:layout_height="40dp"
+                                        android:background="@drawable/circle"
+                                        android:layout_gravity="right|center_vertical"
+                                        android:layout_marginRight="2dp"
+                                        android:src="@drawable/ic_credit_card_black_24dp"
+                                        android:padding="5dp"
+                                        />
+
+                                </FrameLayout>
+
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:visibility="invisible"
                             android:id="@+id/otpViewSub">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:layout_weight="1"
+                                android:layout_weight="1.3"
                                 android:orientation="vertical"
                                 android:padding="5dp"
                                 android:gravity="center">
 
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="40dp"
+                                    android:layout_gravity="center_horizontal"
+                                    android:layout_marginLeft="40dp"
+                                    android:layout_marginRight="40dp"
+                                    android:textSize="25sp"
+                                    android:text="Enter the OTP"
+                                    android:textColor="@color/colorPrimaryDark"
+                                    android:fontFamily="sans-serif-light"
+                                    android:textStyle="normal"/>
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:orientation="vertical"
+                                    android:gravity="center">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginBottom="10dp"
+                                        android:layout_gravity="center_horizontal"
+                                        android:layout_marginLeft="40dp"
+                                        android:layout_marginRight="40dp"
+                                        android:fontFamily="sans-serif-condensed"
+                                        android:textStyle="bold"
+                                        android:textSize="18sp"
+                                        android:text="Enter the OTP code sent to your phone to complete the transaction"/>
+
+                                    <android.support.design.widget.TextInputLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginRight="16dp"
+                                        android:layout_marginLeft="16dp"
+                                        android:layout_marginBottom="5dp"
+                                        android:background="@drawable/rounded_edittext">
+                                        <EditText
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:hint="OTP"
+                                            android:imeActionId="@+id/benefPhone"
+                                            android:imeOptions="actionUnspecified"
+                                            android:inputType="numberSigned"
+                                            android:maxLines="1"
+                                            android:maxLength="10"
+                                            android:id="@+id/cardOTP"
+                                            />
+
+
+                                    </android.support.design.widget.TextInputLayout>
+
+                                </LinearLayout>
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_gravity="bottom"
+                                android:layout_marginTop="20dp"
+
+                                >
                                 <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:orientation="horizontal">
-                                    <LinearLayout
-                                        android:layout_width="match_parent"
-                                        android:layout_height="match_parent"
-                                        android:orientation="horizontal"
-                                        android:layout_marginLeft="40dp"
-                                        android:layout_marginRight="40dp">
+                                    android:orientation="horizontal"
+                                    android:gravity="center_horizontal|center_vertical"
+                                    android:layout_marginBottom="10dp">
+                                    <View
+                                        android:layout_width="80dp"
+                                        android:layout_height="1dp"
+                                        android:background="#999999"/>
 
-                                        <android.support.design.widget.TextInputLayout
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:layout_marginRight="16dp"
-                                            android:layout_marginLeft="16dp"
-                                            android:layout_marginBottom="5dp">
-                                            <EditText
-                                                android:layout_width="match_parent"
-                                                android:layout_height="wrap_content"
-                                                android:hint="OTP"
-                                                android:imeActionId="@+id/benefPhone"
-                                                android:imeOptions="actionUnspecified"
-                                                android:inputType="numberSigned"
-                                                android:maxLines="1"
-                                                android:maxLength="5"
-                                                android:id="@+id/cardOTP"
-                                                />
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Payment Option"
+                                        android:textColor="#999999"
+                                        android:layout_marginLeft="5dp"
+                                        android:layout_marginRight="5dp"/>
 
-
-                                        </android.support.design.widget.TextInputLayout>
-                                    </LinearLayout>
+                                    <View
+                                        android:layout_width="80dp"
+                                        android:layout_height="1dp"
+                                        android:background="#999999"/>
                                 </LinearLayout>
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center">
+                                    <ImageView
+                                        android:layout_width="100dp"
+                                        android:layout_height="wrap_content"
+                                        android:src="@drawable/master"/>
+
+                                    <ImageView
+                                        android:layout_width="40dp"
+                                        android:layout_height="wrap_content"
+                                        android:src="@drawable/visa"/>
+                                </LinearLayout>
+
                             </LinearLayout>
 
                             <LinearLayout
@@ -109,20 +343,53 @@
                                 android:layout_weight="3"
                                 android:gravity="center">
 
-                                <Button
+                                <FrameLayout
                                     android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:text="Confirm Payment"
-                                    android:textSize="20sp"
-                                    android:layout_gravity="center_vertical"
-                                    android:layout_marginLeft="40dp"
-                                    android:layout_marginRight="40dp"
-                                    android:textColor="#ffffff"
-                                    android:background="@drawable/btn_bg"
-                                    android:textStyle="bold"
-                                    android:fontFamily="sans-serif-thin"
+                                    android:layout_height="46dp"
+                                    android:background="@drawable/yellow_bg_btn"
+                                    android:layout_gravity="bottom"
+                                    android:elevation="2dp"
+
                                     android:onClick="confirmOTPPayment"
-                                    />
+                                    android:clickable="true"
+                                    android:layout_marginRight="40dp"
+                                    android:layout_marginLeft="40dp"
+                                    android:layout_marginBottom="20dp"
+
+                                    android:foreground="?attr/selectableItemBackgroundBorderless">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Confirm OTP"
+                                        android:textColor="#ffffff"
+                                        android:textSize="18dp"
+                                        android:layout_gravity="center"
+                                        android:fontFamily="sans-serif-light"
+                                        android:textStyle="normal"
+                                        />
+
+                                    <ProgressBar
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_gravity="center"
+
+                                        android:visibility="gone"
+                                        android:layout_margin="5dp"
+                                        android:elevation="4dp"/>
+
+                                    <ImageView
+                                        android:layout_width="40dp"
+                                        android:layout_height="40dp"
+                                        android:background="@drawable/circle"
+                                        android:layout_gravity="right|center_vertical"
+                                        android:layout_marginRight="2dp"
+                                        android:src="@drawable/ic_credit_card_black_24dp"
+                                        android:padding="5dp"
+                                        />
+
+                                </FrameLayout>
+
                             </LinearLayout>
 
                         </LinearLayout>
@@ -583,7 +850,7 @@
                                 android:drawablePadding="5dp"
                                 android:textSize="22sp"
                                 android:fontFamily="sans-serif-light"
-                                android:maxLength="20"
+                                android:maxLength="19"
                                 />
 
                         </android.support.design.widget.TextInputLayout>
@@ -642,7 +909,7 @@
                                         android:imeActionId="@+id/benefPhone"
                                         android:inputType="numberSigned"
                                         android:maxLines="1"
-                                        android:maxLength="4"
+                                        android:maxLength="2"
                                         android:id="@+id/cardYear"
                                         />
 
@@ -665,13 +932,13 @@
                                     android:layout_marginLeft="16dp"
                                     android:layout_marginBottom="5dp"
                                     android:padding="5dp"
+                                    android:hint="CVV"
                                     android:background="@drawable/rounded_edittext"
                                     android:layout_marginTop="10dp">
                                     <EditText
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
-                                        android:hint="CVV"
-                                        android:text="111"
+
                                         android:imeActionId="@+id/benefPhone"
                                         android:imeOptions="actionUnspecified"
                                         android:inputType="numberSigned"

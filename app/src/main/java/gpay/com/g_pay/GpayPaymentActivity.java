@@ -31,6 +31,7 @@ import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
+import com.google.firebase.crash.FirebaseCrash;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,22 +42,28 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import co.paystack.android.*;
+import co.paystack.android.Transaction;
+import co.paystack.android.model.Card;
+import co.paystack.android.model.Charge;
+
 public class GpayPaymentActivity extends AppCompatActivity implements OnDataReady
 {
 
-    private LinearLayout paymentCard,cardPaymentView,paymentForm,otpView,otpViewSub,successView,successViewPrepaid,transNotSuccessful;
+    private LinearLayout PinView,cardPaymentView,paymentForm,otpView,otpViewSub,successView,successViewPrepaid,transNotSuccessful;
     private Spinner meterType,meterType2;
     private FrameLayout mainPayFrame,benefDetailsView;
     private CardView beneficiaryForm,cardView;
     private Toolbar toolbar;
     private FrameLayout saveBeneficiaryBtn;
-    private EditText benefMeterAccount,benefPhone,cardCVV,cardYear,cardMonth,cardNumber,cardOTP,benefAmount;
+    private EditText cardPIN,benefMeterAccount,benefPhone,cardCVV,cardYear,cardMonth,cardNumber,cardOTP,benefAmount;
     private String authToken,email,mType=null,payRef=null;
-    private TextView benefName,benefAddress,benefOutstanding,__benefPhone,successAccountMeter,amountPaidPrepaid,successMeter,tokenString,transType,accountName,unit,prepaidTransDate;
+    private TextView postpaidTransDate,benefName,benefAddress,benefOutstanding,__benefPhone,successAccountMeter,amountPaidPrepaid,successMeter,tokenString,transType,accountName,unit,prepaidTransDate;
     private boolean accountSaveMode = false;
     private ImageView checkbox;
     private TextView balanceDetails,amountPaid,successAccountType,prevOut,curOut;
     private ProgressBar progressbar;
+    private String OTPid;
    // private final String API_KEY = "20356a01-f053-45bd-a2ec-3fadd71d56c5";
     //private final String MERCHANT_ID = "KM2GFSDXVEOEUPEGVFTCQ";
 
@@ -72,6 +79,8 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
     private int customerId;
     private String current = "";
     private String cleanString;
+    //private Snackbar snackbar = null;
+
     String a;
     int keyDel;
 
@@ -82,6 +91,8 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gpay_payment);
+
+        PaystackSdk.initialize(getApplicationContext());
 
         Bundle bundle = getIntent().getExtras();
         authToken = bundle.getString("authToken");
@@ -117,6 +128,8 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
         transType = (TextView) findViewById(R.id.transType);
         accountName = (TextView) findViewById(R.id.accountName);
 
+        PinView = (LinearLayout) findViewById(R.id.pinViewSub);
+
         prepaidTransDate = (TextView) findViewById(R.id.prepaidTransDate);
         unit = (TextView) findViewById(R.id.unit);
 
@@ -131,7 +144,7 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
 
         successViewPrepaid = (LinearLayout) findViewById(R.id.successViewPrepaid);
 
-
+        postpaidTransDate = (TextView) findViewById(R.id.postpaidTransDate);
 
         benefName = (TextView) findViewById(R.id.benefName);
         benefAddress = (TextView) findViewById(R.id.benefAddress);
@@ -171,7 +184,7 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
 
 
                     } catch (Exception e) {
-                        //notify.show(e.getMessage());
+                        FirebaseCrash.report(e);
                     }
                     benefAmount.addTextChangedListener(this);
                 }
@@ -188,6 +201,8 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
         cardYear = (EditText) findViewById(R.id.cardYear);
         cardMonth = (EditText) findViewById(R.id.cardMonth);
         cardNumber = (EditText) findViewById(R.id.cardNumber);
+
+        cardPIN = (EditText) findViewById(R.id.cardPIN);
 
 
         cardNumber.addTextChangedListener(new TextWatcher() {
@@ -428,7 +443,7 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
         }
         catch (JSONException e)
         {
-            e.printStackTrace();
+            FirebaseCrash.report(e);
         }
     }
 
@@ -442,7 +457,7 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
         }
         catch (JSONException e)
         {
-            e.printStackTrace();
+            FirebaseCrash.report(e);
         }
     }
 
@@ -498,13 +513,23 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
 
         if(!TextUtils.isEmpty(benefAmount.getText().toString()))
         {
-            dialog.setTitle("Payment");
+            /*dialog.setTitle("Payment");
             dialog.setMessage("Connecting to gateway");
-            dialog.show();
+            dialog.show();*/
             amount = benefAmount.getText().toString();
             name = benefName.getText().toString();
 
-            Map<String,String> params = new HashMap<>();
+            benefDetailsView.setVisibility(View.INVISIBLE);
+            cardPaymentView.setVisibility(View.VISIBLE);
+            cardPaymentView.invalidate();
+
+            if(payRef==null)
+            {
+                getTransactionRef();
+            }
+            //toolbar.setTitle("Enter card details");
+
+           /* Map<String,String> params = new HashMap<>();
             params.put( "MerchantId",MERCHANT_ID);
             params.put("ApiKey",API_KEY);
             params.put("PaymentDescription", "PHED Bill");
@@ -514,7 +539,11 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
             params.put("CustomerName",benefName.getText().toString());
             params.put("amount",amount+"");
 
-            new PaymentConnection(this, params, new OnDataReady() {
+            FirebaseCrash.log(amount+"-------------"+standardAmount(amount));*/
+            //Log.e("Amount",amount+"-------------"+standardAmount(amount));
+            //Snackbar.make(cardView,amount+"-------------"+standardAmount(amount),Snackbar.LENGTH_LONG).show();
+
+            /*new PaymentConnection(this, params, new OnDataReady() {
                 @Override
                 public void dataReady(JSONObject jsonObject, Object object)
                 {
@@ -530,10 +559,11 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
                         {
                             EncKey = jsonObject.getString("EncKey");
                             AuthToken = jsonObject.getString("AuthToken");
+                            transactionRef = jsonObject.getString("TransactionRef");
                         }
                         catch (JSONException e)
                         {
-                            e.printStackTrace();
+                            FirebaseCrash.report(e);
                         }
                         Log.e("response==",jsonObject.toString());
                     }
@@ -550,9 +580,11 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
                 public void onNoConnection(String message)
                 {
                     dialog.dismiss();
+
                     Snackbar.make(cardView,message,Snackbar.LENGTH_LONG).show();
+                    FirebaseCrash.log(message);
                 }
-            });
+            });*/
         }
         else
         {
@@ -572,10 +604,72 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
 
             try
             {
-                String encCardNum = EncryptionHelper.encrypt(cardNumber.getText().toString().replace("-",""),EncKey);
-                String encCardM = EncryptionHelper.encrypt(cardMonth.getText().toString(),EncKey);
-                String encCardY = EncryptionHelper.encrypt(cardYear.getText().toString(),EncKey);
-                String encCVV = EncryptionHelper.encrypt(cardCVV.getText().toString(),EncKey);
+                Card card = new Card(cardNumber.getText().toString().replace("-","").trim(),Integer.parseInt(cardMonth.getText().toString().trim()),Integer.parseInt(cardYear.getText().toString().trim()),cardCVV.getText().toString().trim());
+
+                Charge charge = new Charge();
+                charge.setCard(card);
+                charge.setAmount(Integer.parseInt(standardAmount(amount)));
+                charge.setReference(payRef);
+                charge.setEmail(email);
+                charge.setTransactionCharge(Integer.parseInt(standardAmount(amount)));
+                charge.setCurrency("NGN");
+                //charge.setPlan("001");
+
+                if(card.validNumber() && card.validExpiryDate()&&card.validCVC())
+                {
+                    if(card.isValid())
+                    {
+                        PaystackSdk.chargeCard(this, charge, new Paystack.TransactionCallback() {
+                            @Override
+                            public void onSuccess(Transaction transaction)
+                            {
+                                payOnPHED();
+                            }
+
+                            @Override
+                            public void beforeValidate(Transaction transaction) {
+                                Log .e("returned B4 Validate",transaction.getReference());
+                            }
+
+                            @Override
+                            public void onError(Throwable error, Transaction transaction)
+                            {
+                                dialog.dismiss();
+
+                                final Snackbar snackbar = Snackbar.make(cardView,error.getMessage(),Snackbar.LENGTH_INDEFINITE);
+                                snackbar.setAction("Close", new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v)
+                                    {
+                                        benefDetailsView.setVisibility(View.VISIBLE);
+                                        cardPaymentView.setVisibility(View.INVISIBLE);
+                                        benefDetailsView.invalidate();
+                                        payRef=null;
+                                        snackbar.dismiss();
+                                    }
+                                });
+
+                                snackbar.show();
+
+                                Log .e("return error",error.getMessage());
+                                FirebaseCrash.log("Payment-Error__"+ error.getMessage());
+                            }
+                        });
+                    }
+                    else
+                    {
+                        Log.e("card-error","Invalid card error");
+                    }
+                }
+                else
+                {
+                    dialog.dismiss();
+                    Log.e("card-error","error form card");
+                }
+                /*String encCardNum = EncryptionHelper.encrypt(cardNumber.getText().toString().replace("-","").trim(),EncKey);
+                String encCardM = EncryptionHelper.encrypt(cardMonth.getText().toString().trim(),EncKey);
+                String encCardY = EncryptionHelper.encrypt(cardYear.getText().toString().trim(),EncKey);
+                String encCVV = EncryptionHelper.encrypt(cardCVV.getText().toString().trim(),EncKey);
 
                 Map<String,String> params = new HashMap<>();
                 params.put("dir","sdk/card/charge");
@@ -585,10 +679,8 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
                 params.put("EncEXPMONTH",encCardM);
                 params.put("EncEXPYEAR",encCardY);
                 params.put("EncCVV",encCVV);
-                params.put("EncPIN",encCVV);
-                params.put("MaskedPan",maskedNumber(cardNumber.getText().toString()));
-
-
+                //params.put("EncPIN",encCVV);
+                params.put("MaskedPan",maskedNumber(cardNumber.getText().toString().replace("-","").trim()));
 
 
                 //5060990580000217499
@@ -597,35 +689,49 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
                     @Override
                     public void dataReady(JSONObject jsonObject, Object object)
                     {
+                        dialog.dismiss();
                         Log.e("new card",jsonObject.toString());
 
                         try
                         {
-                            switch(jsonObject.getString("StatusCode"))
+                            if(jsonObject.has("ResponseCode"))
                             {
-                                case "00":
+                                switch(jsonObject.getString("ResponseCode"))
+                                {
+                                    case "1201":
+                                        cardPaymentView.setVisibility(View.INVISIBLE);
+                                        PinView.setVisibility(View.VISIBLE);
+                                        break;
 
-                                    transactionRef = jsonObject.getString("TransactionRef");
+                                    case "1200":
+                                        cardPaymentView.setVisibility(View.INVISIBLE);
+                                        otpViewSub.setVisibility(View.VISIBLE);
+                                        break;
 
+                                    default:
 
-                                         verifyCardPayment();
+                                        benefDetailsView.setVisibility(View.VISIBLE);
+                                        cardPaymentView.setVisibility(View.INVISIBLE);
+                                        Snackbar.make(cardView,jsonObject.getString("StatusDesc")+"(Status: "+jsonObject.getString("OrderStatus")+")",6000).show();
 
+                                }
 
-
-                                    break;
-
-                                case "A11":
-
-                                    dialog.dismiss();
+                                if(jsonObject.has("StatusCode"))
+                                {
+                                    verifyCardPayment();
+                                }
+                                else
+                                {
                                     benefDetailsView.setVisibility(View.VISIBLE);
                                     cardPaymentView.setVisibility(View.INVISIBLE);
-                                    Snackbar.make(cardView,jsonObject.getString("StatusDesc"),3000).show();
-                                    break;
+                                    Snackbar.make(cardView,jsonObject.getString("StatusDesc")+"(Status: "+jsonObject.getString("OrderStatus")+")",6000).show();
+                                }
                             }
+
                         }
                         catch (JSONException e)
                         {
-                            Log.e("error-tunji66666",e.getMessage());
+                            FirebaseCrash.log(e.getMessage());
                         }
 
                     }
@@ -647,13 +753,19 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
                         dialog.dismiss();
                         Snackbar.make(cardView,message,Snackbar.LENGTH_LONG).dismiss();
                     }
-                });
+                });*/
+
+
             }
             catch (Exception e)
             {
-
-                Log.e("exception",e.getMessage());
+                FirebaseCrash.report(e);
+                Log.e("card-exception-error",e.getMessage());
             }
+        }
+        else
+        {
+            Log.e("card-error","error form card-----------");
         }
     }
 
@@ -661,19 +773,8 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
         String starts = null;
         String leadNumber = cardNumber.substring(0,6);
         String lastFourLetter = cardNumber.substring(cardNumber.length() - 4);
-        for(int i=0;i<(cardNumber.length()-10);i++)
-        {
-            if(starts==null)
-            {
-                starts ="*";
-            }
-            else
-            {
-                starts +="*";
-            }
 
-        }
-        String result = leadNumber + starts + lastFourLetter;
+        String result = leadNumber + "****" + lastFourLetter;
 
         return result;
     }
@@ -692,7 +793,8 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
             params.put("AuthToken",AuthToken);
             params.put("TransactionRef",transactionRef);
             params.put("EncOTP",EncryptionHelper.encrypt(cardOTP.getText().toString(),EncKey));
-            params.put("EncOTPID",EncryptionHelper.encrypt(otpID,EncKey));
+            params.put("EncOTPID",EncryptionHelper.encrypt(OTPid,EncKey));
+
 
             new PaymentConnection(this, params, new OnDataReady()
             {
@@ -703,7 +805,7 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
                     {
                         switch (jsonObject.getString("StatusCode"))
                         {
-                            case "00":
+                            /*case "00":
                                 dialog.setTitle("Connecting to PHED");
                                 dialog.setMessage("Logging payment, please wait...");
 
@@ -756,6 +858,8 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
 
                                                 break;
 
+
+
                                             default:
                                                 dialog.dismiss();
                                                 Snackbar.make(cardView,jsonObject.getString("message"),Snackbar.LENGTH_LONG).show();
@@ -789,15 +893,44 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
                                 }
                             });
 
+                                break;*/
+
+                            case "00":
+
+                                //transactionRef = jsonObject.getString("TransactionRef");
+                                verifyCardPayment();
+
+                                break;
+
+                            case "RR":
+                                dialog.dismiss();
+                                final Snackbar snackbar = Snackbar.make(cardView,jsonObject.getString("OrderStatus")+" "+jsonObject.getString("StatusDesc"),Snackbar.LENGTH_INDEFINITE);
+                                snackbar.setAction("Close", new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        snackbar.dismiss();
+                                    }
+                                }).show();
+
+
+                                otpViewSub.setVisibility(View.INVISIBLE);
+                                benefDetailsView.setVisibility(View.VISIBLE);
+                                break;
+
+                            case "A11":
+
+                                benefDetailsView.setVisibility(View.VISIBLE);
+                                cardPaymentView.setVisibility(View.INVISIBLE);
+                                Snackbar.make(cardView,jsonObject.getString("StatusDesc"),3000).show();
                                 break;
                         }
 
                     }
                     catch (JSONException e)
                     {
-                        e.printStackTrace();
+                        FirebaseCrash.report(e);
                     }
-                    Log.e("otp===",jsonObject.toString());
+
                 }
 
                 @Override
@@ -812,7 +945,7 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
                         ViewGroup.LayoutParams buttonLayout = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                         dialog.addContentView(btn,buttonLayout);*/
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        FirebaseCrash.report(e);
                     }
                 }
 
@@ -831,6 +964,82 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
         }
     }
 
+    public void confirmPINCode(View v)
+    {
+        if(!TextUtils.isEmpty(cardPIN.getText().toString()))
+        {
+            dialog.show();
+            Map<String,String> param = new HashMap<>();
+            try
+            {
+                String encCardNum = EncryptionHelper.encrypt(cardNumber.getText().toString().replace("-","").trim(),EncKey);
+                String encCardM = EncryptionHelper.encrypt(cardMonth.getText().toString().trim(),EncKey);
+                String encCardY = EncryptionHelper.encrypt(cardYear.getText().toString().trim(),EncKey);
+                String encCVV = EncryptionHelper.encrypt(cardCVV.getText().toString().trim(),EncKey);
+
+                param.put("dir","sdk/card/charge");
+                param.put("MerchantId",MERCHANT_ID);
+                param.put("AuthToken",AuthToken);
+                param.put("EncCARD",encCardNum);
+                param.put("EncEXPMONTH",encCardM);
+                param.put("EncEXPYEAR",encCardY);
+                param.put("EncCVV",encCVV);
+                param.put("EncPIN",EncryptionHelper.encrypt(cardPIN.getText().toString(),EncKey));
+                param.put("MaskedPan",maskedNumber(cardNumber.getText().toString().replace("-","").trim()));
+
+
+                new PaymentConnection(this, param, new OnDataReady() {
+                    @Override
+                    public void dataReady(JSONObject jsonObject, Object object) {
+                        dialog.dismiss();
+
+                        try {
+                            switch (jsonObject.getString("ResponseCode"))
+                            {
+                                case "1200":
+                                OTPid = jsonObject.getString("OtpID");
+                                String transRef = jsonObject.getString("TransactionRef");
+                                String respDesc = jsonObject.getString("ResponseDesc");
+
+                                    PinView.setVisibility(View.INVISIBLE);
+                                    otpViewSub.setVisibility(View.VISIBLE);
+
+                                    break;
+                            }
+
+                        } catch (JSONException e) {
+                            FirebaseCrash.report(e);
+                        }
+
+                        Log.e("card-pin resp",jsonObject.toString());
+                    }
+
+                    @Override
+                    public void onConnectionError(JSONObject error) {
+                        dialog.dismiss();
+                        Log.e("connect-error",error.toString());
+                    }
+
+                    @Override
+                    public void onNoConnection(String message)
+                    {
+                        dialog.dismiss();
+                        Log.e("connect-error4444",message);
+                    }
+                });
+
+            }
+            catch (Exception e)
+            {
+                FirebaseCrash.report(e);
+            }
+        }
+        else
+        {
+            Snackbar.make(cardPIN,"Please card PIN is required",Snackbar.LENGTH_LONG).show();
+        }
+    }
+
     @Override
     public void onBackPressed()
     {
@@ -841,8 +1050,9 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
 
     public String standardAmount(String amount)
     {
-        String[] sArray = amount.split("\\.");
-        int i = Integer.parseInt(sArray[0])*100;
+        double amountD = Double.parseDouble(amount);
+        //String[] sArray = amount.split("\\.");
+        int i = (int)amountD*100;
         return i+"";
     }
 
@@ -868,7 +1078,7 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
     public void getTransactionRef()
     {
         dialog.setTitle("Please wait");
-        dialog.setMessage("Connecting to PHED");
+        dialog.setMessage("Fetching Transaction Ref");
         dialog.show();
         Map<String, Object> params = new HashMap<>();
         params.put("dir","client-api/gpay");
@@ -893,7 +1103,7 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
                 }
                 catch (JSONException e)
                 {
-                    e.printStackTrace();
+                    FirebaseCrash.report(e);
                 }
                 Log.e("tranRef",jsonObject.toString());
             }
@@ -959,10 +1169,11 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
             @Override
             public void dataReady(JSONObject jsonObject, Object object)
             {
+                Log.e("token----",jsonObject.toString());
                 try
                 {
                     JSONObject responseObj = jsonObject.getJSONObject("yourResponse");
-                        Log.e("token----",jsonObject.toString());
+
                     switch (jsonObject.getString("message"))
                     {
                         case "00":
@@ -998,18 +1209,19 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
                                     cardPaymentView.setVisibility(View.INVISIBLE);
                                     successView.invalidate();
 
-                                    JSONObject yourJsonObj = jsonObject.getJSONObject("yourResponse");
+
                                     //double payAmount = Double.parseDouble(yourJsonObj.getString("payment_amount"))*100;
 
-                                    amountPaid.setText("\u20A6"+yourJsonObj.getString("payment_amount")+"");
-                                    successAccountMeter.setText(yourJsonObj.getString("account_no"));
+                                    amountPaid.setText("\u20A6"+responseObj.getString("payment_amount")+"");
+                                    successAccountMeter.setText(responseObj.getString("account_no"));
 
-                                    successAccountType.setText(jsonObject.getString(""));
+                                    successAccountType.setText(customerAccount.getType());
 
-                                    prevOut.setText("Pre  "+"\u20A6"+yourJsonObj.getString("outstanding_prev"));
-                                    curOut.setText("Cur  "+"\u20A6"+yourJsonObj.getString("outstanding"));
+                                    prevOut.setText("Pre  "+"\u20A6"+" "+responseObj.getString("outstanding_prev"));
+                                    curOut.setText("Cur  "+"\u20A6"+" "+responseObj.getString("outstanding"));
 
-                                    transDate = yourJsonObj.getString("payment_time");
+                                    transDate = responseObj.getString("payment_time");
+                                    postpaidTransDate.setText(transDate);
 
                                     break;
                             }
@@ -1034,7 +1246,9 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
                     }
                 }
                 catch (JSONException e) {
-                    Log.e("pay-log",e.getMessage());
+                    FirebaseCrash.report(e);
+                    Log.e("error",e.getMessage());
+                    e.printStackTrace();
                 }
             }
 
@@ -1049,7 +1263,7 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
                 }
                 catch (JSONException e) {
 
-                    e.printStackTrace();
+                    FirebaseCrash.report(e);
                 }
             }
 
@@ -1132,7 +1346,7 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
                 }
                 catch (JSONException e)
                 {
-                    e.printStackTrace();
+                    FirebaseCrash.report(e);
                 }
             }
 

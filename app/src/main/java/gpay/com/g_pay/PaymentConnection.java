@@ -10,6 +10,7 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.firebase.crash.FirebaseCrash;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -61,21 +62,31 @@ public class PaymentConnection
             @Override
             public void onErrorResponse(VolleyError error)
             {
-                String s = new String(error.networkResponse.data);
-                try
+                if(error!=null)
                 {
+                    String s = new String(error.networkResponse.data);
+                    try
+                    {
 
-                    JSONObject jsonObject = new JSONObject(s.trim());
-                    onDataReady.onConnectionError(jsonObject);
+                        JSONObject jsonObject = new JSONObject(s.trim());
+                        onDataReady.onConnectionError(jsonObject);
+                    }
+                    catch (JSONException e)
+                    {
+                        onDataReady.onNoConnection(s.trim());
+                        FirebaseCrash.report(e);
+                    }
+                    catch (NullPointerException e)
+                    {
+                        onDataReady.onNoConnection("No connection try again later");
+                        FirebaseCrash.report(e);
+                    }
                 }
-                catch (JSONException e)
+                else
                 {
-                    onDataReady.onNoConnection(s.trim());
+                    onDataReady.onNoConnection("Connection timed out");
                 }
-                catch (NullPointerException e)
-                {
-                    onDataReady.onNoConnection("No connection try again later");
-                }
+
 
                 //Log.e("Server error","------------------------");
                 //Toast.makeText(context,error.getMessage(),Toast.LENGTH_LONG).show();
