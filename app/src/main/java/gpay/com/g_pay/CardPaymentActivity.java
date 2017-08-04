@@ -20,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.google.firebase.crash.FirebaseCrash;
@@ -255,15 +256,22 @@ public class CardPaymentActivity extends AppCompatActivity implements OnDataRead
     {
 
         scaleBackBtn();
-        try
-        {
-            Snackbar.make(progressBar,error.getString("description"),Snackbar.LENGTH_LONG).show();
-        }
-        catch (JSONException e) {
+        try {
+            if(error.getInt("code")==498)
+            {
+                Snackbar snackbar = Snackbar.make(btnText,"Session expired",Snackbar.LENGTH_INDEFINITE);
+                snackbar.setAction("Re-Login", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(CardPaymentActivity.this,LoginActivity.class);
+                        CardPaymentActivity.this.startActivity(intent);
+                    }
+                });
+                snackbar.show();
+            }
+        } catch (JSONException e) {
             FirebaseCrash.log(e.getMessage());
-
         }
-        Log.e("",error.toString());
     }
 
     @Override

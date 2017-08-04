@@ -2,6 +2,7 @@ package gpay.com.g_pay;
 
 import android.accounts.Account;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -64,6 +65,8 @@ public class MainActivity extends AppCompatActivity implements OnDataReady
     private CoordinatorLayout mainCoordinator;
     private ImageView navRight,navLeft;
     private AccountMeter aMeter;
+    boolean checkCustomer = false;
+    private ProgressDialog dialog;
 
 
     @Override
@@ -75,7 +78,12 @@ public class MainActivity extends AppCompatActivity implements OnDataReady
         toolbar.setTitle("");
         setSupportActionBar(toolbar);
 
+        aMeter = new AccountMeter();
+
         //getWindow().setBackgroundDrawableResource(R.drawable.bg_image);
+
+        dialog = new ProgressDialog(this);
+        dialog.setCancelable(false);
 
         sectionHashMap = new ArrayList<>();
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout_archive);
@@ -97,16 +105,26 @@ public class MainActivity extends AppCompatActivity implements OnDataReady
 
         authToken = getIntent().getStringExtra("token");
         email = getIntent().getStringExtra("email");
-        database = new Database(this);
+
+        //database feature cancelled
+
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh()
+            {
+
+                getTransactions(aMeter.getCustomerid(),PAGE);
+
+                PAGE +=1;
+            }
+        });
+
+        /*database = new Database(this);
         Cursor cursor = database.getDbAccounts();
 
          if(cursor.getCount()==0)
          {
-             Intent intent = new Intent(this,CardPaymentActivity.class);
-             intent.putExtra("imei",imei);
-             intent.putExtra("authToken",authToken);
-             startActivityForResult(intent,2);
-
+             getCustomerListFromServer();
          }
          else
          {
@@ -145,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements OnDataReady
              });
 
 
-         }
+         }*/
 
 
         //progressBar = (ProgressBar) findViewById(R.id.toolbarProgress);
@@ -259,6 +277,9 @@ public class MainActivity extends AppCompatActivity implements OnDataReady
                 mViewPager.setCurrentItem(mViewPager.getCurrentItem()+1);
             }
         });
+
+
+        getCustomerListFromServer();
 
 
        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -389,7 +410,23 @@ public class MainActivity extends AppCompatActivity implements OnDataReady
     @Override
     public void onConnectionError(JSONObject error)
     {
-        Snackbar.make(swipeRefreshLayout,error.toString(),Snackbar.LENGTH_SHORT).show();
+        try {
+            if(error.getInt("code")==498)
+            {
+                Snackbar snackbar = Snackbar.make(swipeRefreshLayout,"Session expired",Snackbar.LENGTH_INDEFINITE);
+                snackbar.setAction("Re-Login", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(MainActivity.this,LoginActivity.class);
+                        MainActivity.this.startActivity(intent);
+                    }
+                });
+                snackbar.show();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
         swipeRefreshLayout.setRefreshing(false);
     }
 
@@ -413,13 +450,15 @@ public class MainActivity extends AppCompatActivity implements OnDataReady
                 account.setPhone(data.getStringExtra("phone"));
                 account.setAddress(data.getStringExtra("address"));
                 account.setType(data.getStringExtra("type"));
+                account.setCustomerid(data.getIntExtra("customerid", 0));
 
                 sectionHashMap.add(account);
 
                 accountPagerAdapter.notifyDataSetChanged();
 
                 swipeRefreshLayout.setRefreshing(true);
-                getTransactions(data.getIntExtra("customerid", 0), 1);
+                getTransactions(account.getCustomerid(), 1);
+                saveCustomerToServer(account.getCustomerid());
             }
 
         }
@@ -444,6 +483,7 @@ public class MainActivity extends AppCompatActivity implements OnDataReady
 
                 mViewPager.setCurrentItem(sectionHashMap.size() - 1, true);
                 getTransactions(account.getCustomerid(), 1);
+                saveCustomerToServer(account.getCustomerid());
             }
 
         }
@@ -533,6 +573,138 @@ public class MainActivity extends AppCompatActivity implements OnDataReady
         params.put("method", Request.Method.GET);
         Log.e("customerId",customerid+"");
         new Connection(this,params,this);
+    }
+
+    public void saveCustomerToServer(int customerid)
+    {
+        Map<String,Object> param = new HashMap<>();
+        param.put("dir","client-api/client-customers/");
+        param.put("customerID",customerid);
+        param.put("authToken",authToken);
+        param.put("method",Request.Method.POST);
+
+        new Connection(this, param, new OnDataReady() {
+            @Override
+            public void dataReady(JSONObject jsonObject, Object object)
+            {
+                Log.i("save to server",jsonObject.toString());
+                try {
+                    if(jsonObject.getString("message")=="00")
+                    {
+                        Toast.makeText(MainActivity.this,"Saved to server",Toast.LENGTH_LONG).show();
+                    }
+                    else
+                    {
+                        FirebaseCrash.log("Error saving customer ID on server");
+                    }
+                } catch (JSONException e) {
+                    FirebaseCrash.log(e.getMessage());
+                }
+
+            }
+
+            @Override
+            public void onConnectionError(JSONObject error) {
+                FirebaseCrash.log(error.toString());
+                Log.e("error1",error.toString());
+            }
+
+            @Override
+            public void onNoConnection(String message) {
+                FirebaseCrash.log(message);
+                Log.e("error2",message);
+            }
+        });
+    }
+
+    public boolean getCustomerListFromServer()
+    {
+        dialog.setTitle("Fetching saved accoounts");
+        dialog.setMessage("Please wait...");
+        dialog.show();
+        Map<String,Object> param = new HashMap<>();
+        param.put("dir","client-api/client-customers/");
+        param.put("authToken",authToken);
+        param.put("method",Request.Method.GET);
+
+
+        new Connection(this, param, new OnDataReady() {
+            @Override
+            public void dataReady(JSONObject jsonObject, Object object) {
+                Log.i("customers",jsonObject.toString());
+                try {
+                    /*if(jsonObject.getString("message")=="00")
+                    {*/
+
+                        JSONObject cusObj = jsonObject.getJSONObject("yourResponse");
+                        JSONArray customerListArray = cusObj.getJSONArray("customers");
+                        if(customerListArray.length()>0)
+                        {
+                            for (int i=0;i<customerListArray.length();i++)
+                            {
+                                JSONObject jsonCus = customerListArray.getJSONObject(i);
+                                AccountMeter accountMeter = new AccountMeter();
+                                accountMeter.setCustomerid(Integer.parseInt(jsonCus.getString("id")));
+                                accountMeter.setAccount(jsonCus.getString("accountNo"));
+                                accountMeter.setName(jsonCus.getString("name"));
+                                accountMeter.setAddress(jsonCus.getString("address"));
+                                accountMeter.setPhone(jsonCus.getString("phone"));
+                                accountMeter.setType(jsonCus.getString("accountType"));
+                                sectionHashMap.add(accountMeter);
+
+                            }
+
+                            if(sectionHashMap.size()>1)
+                            {
+                                aMeter = (AccountMeter) sectionHashMap.get(0);
+                                navRight.setVisibility(View.VISIBLE);
+                                navRight.invalidate();
+                                getTransactions(aMeter.getCustomerid(),1);
+                            }
+                            accountPagerAdapter.notifyDataSetChanged();
+                            mViewPager.setCurrentItem(0);
+                        }
+                        else
+                        {
+                            Intent intent = new Intent(MainActivity.this,CardPaymentActivity.class);
+                            intent.putExtra("imei",imei);
+                            intent.putExtra("authToken",authToken);
+                            startActivityForResult(intent,2);
+                        }
+                    /*}
+                    else
+                    {
+                        Log.i("if--error","error");
+                    }*/
+                } catch (JSONException e) {
+                    Log.i("customers--error",e.getMessage());
+                }
+
+                checkCustomer = true;
+                dialog.dismiss();
+            }
+
+            @Override
+            public void onConnectionError(JSONObject error) {
+                dialog.dismiss();
+                Intent intent = new Intent(MainActivity.this,CardPaymentActivity.class);
+                intent.putExtra("imei",imei);
+                intent.putExtra("authToken",authToken);
+                startActivityForResult(intent,2);
+            }
+
+            @Override
+            public void onNoConnection(String message) {
+                dialog.dismiss();
+
+                Intent intent = new Intent(MainActivity.this,CardPaymentActivity.class);
+                intent.putExtra("imei",imei);
+                intent.putExtra("authToken",authToken);
+                startActivityForResult(intent,2);
+            }
+        });
+
+        return checkCustomer;
     }
 
 }

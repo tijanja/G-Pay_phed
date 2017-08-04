@@ -63,14 +63,16 @@ public class Connection
             @Override
             public void onErrorResponse(VolleyError error)
             {
-                String s = new String(error.networkResponse.data);
+
                 try
                 {
+                    String s = new String(error.networkResponse.data);
                     JSONObject jsonObject = new JSONObject(s.trim());
                     onDataReady.onConnectionError(jsonObject);
                 }
                 catch (JSONException e)
                 {
+                    String s = new String(error.networkResponse.data);
                     onDataReady.onNoConnection(s.trim());
                     FirebaseCrash.report(e);
                 }

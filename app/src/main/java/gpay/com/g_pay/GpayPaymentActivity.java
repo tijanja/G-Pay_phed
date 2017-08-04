@@ -664,6 +664,7 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
                 else
                 {
                     dialog.dismiss();
+                    Snackbar.make(cardNumber,"Invalid card",Snackbar.LENGTH_LONG).show();
                     Log.e("card-error","error form card");
                 }
                 /*String encCardNum = EncryptionHelper.encrypt(cardNumber.getText().toString().replace("-","").trim(),EncKey);
@@ -1095,11 +1096,15 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
             @Override
             public void dataReady(JSONObject jsonObject, Object object)
             {
+                Log.i("getRef",jsonObject.toString());
                 dialog.dismiss();
                 try
                 {
                     JSONObject accountJson = jsonObject.getJSONObject("yourResponse");
                     payRef = accountJson.getString("payRef");
+                    benefOutstanding.setText(accountJson.getString("outstanding"));
+                    benefOutstanding.invalidate();
+
                 }
                 catch (JSONException e)
                 {
@@ -1363,6 +1368,24 @@ public class GpayPaymentActivity extends AppCompatActivity implements OnDataRead
                 Snackbar.make(cardView,message,Snackbar.LENGTH_LONG).show();
             }
         });
+
+    }
+
+    public boolean saveToDatabase(int customerid,String name,String account,String address,String phone,String type)
+    {
+        Database database = new Database(this);
+
+        if(database.insertValue(customerid,name,account,address,phone,type))
+        {
+
+            Snackbar.make(cardView,"Account saved",Snackbar.LENGTH_LONG).show();
+            return true;
+        }
+        else
+        {
+            Snackbar.make(cardView,"Error while saving data",Snackbar.LENGTH_LONG).show();
+            return false;
+        }
 
     }
 
